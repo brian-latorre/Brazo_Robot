@@ -16,4 +16,4 @@ Este repositorio contiene todo lo que necesitas para replicar nuestro proyecto c
 
 También puedes usarlo como guía para desarrollar tu propio proyecto, especialmente si estás comenzando desde cero, tal como hicimos nosotros.
 
-![Servomotores](https://github.com/user-attachments/assets/f7714145-2ae7-4db5-bfc1-36c338258912|width=100)
+![Servomotores](https://github.com/user-attachments/assets/f7714145-2ae7-4db5-bfc1-36c338258912|100)
