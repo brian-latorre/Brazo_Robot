@@ -16,6 +16,4 @@ Este repositorio contiene todo lo que necesitas para replicar nuestro proyecto c
 
 También puedes usarlo como guía para desarrollar tu propio proyecto, especialmente si estás comenzando desde cero, tal como hicimos nosotros.
 
-![Servomotores|width=100](https://github.com/user-attachments/assets/f7714145-2ae7-4db5-bfc1-36c338258912)
-
-![Servomotores](https://github.com/brian-latorre/Brazo_robot/blob/main/Multimedia/Servomotores.jpeg?raw=true)
+![Servomotores|100](https://github.com/brian-latorre/Brazo_robot/blob/main/Multimedia/Servomotores.jpeg?raw=true)
