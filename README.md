@@ -59,7 +59,7 @@ Recomendamos seguir la [documentación] que creamos para poder usar el brazo rob
 ### Limitaciones
 
 - Dependencia de buena iluminación para la cámara.
-- Revisar que el brazo no esté torcido entre los servos _Codo-Muñeca-IN_.
+- Revisar que el brazo no esté torcido entre los servos _Codo-Muñeca-In_.
 - Necesidad de bases para hacer los giros del cubo y poder agarrar los cubos de manera correcta. 
 
 <img src="https://github.com/brian-latorre/Brazo_robot/blob/main/Multimedia/Servomotores.jpeg" width="400">
