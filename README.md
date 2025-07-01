@@ -17,18 +17,33 @@ Este repositorio contiene todo lo que necesitas para replicar nuestro proyecto c
 
 También puedes usarlo como guía para desarrollar tu propio proyecto, especialmente si estás comenzando desde cero, tal como hicimos nosotros.
 
+## Software
+
+- [Arduino IDE](https://www.arduino.cc/en/software/)
+- Visual Studio Code
+- IP Webcam
+
+## Hardware
+
+- Celular
+- Brazo Robótico de 6 servomotores
+- Arduino UNO Mini
+
 ## ¿Cómo empezar?
 
 Recomendamos seguir la [documentación] que creamos para poder usar el brazo robótico. 
 
 ## Descargas
 
-1. Descarga la carpeta [Programas](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas/ArduinoIDE).
-2. Corre el archivo Detectar_QR.py (puedes usar VSC).
-3. Abre la aplicación IPWebcam en tu celular y posicionala para obtener una vista isométrica del cubo.
-4. Reemplaza la IP que está en el programa Detectar_QR.py por la IP que muestra la aplicación. 
-5. Coloca el cubo en la posición correcta.
-6. Presiona **Empezar** en la interfaz. 
+1. Descarga la carpeta [Programas](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas).
+2. Abre el archivo [Arduino_Movimientos.ino](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas/ArduinoIDE/Arduino_Movimientos/Arduino_Movimientos.ino) con la aplicación Arduino IDE.
+3. Presiona los botones _Verify_ y _Upload_ en Arduino IDE. (recomendamos que el brazo esté apagado para evitar movimientos bruscos)
+4. Cierra el programa de Arduino IDE. (recomendamos revisar [documentación] para evitar errores)
+5. Corre el archivo Detectar_QR.py. (puede usar VSC)
+6. Abre la aplicación IP Webcam en tu celular y posicionala para obtener una vista isométrica del cubo.
+7. Reemplaza la IP que está en el programa Detectar_QR.py por la IP que muestra la aplicación. (el programa y la aplicación deben estar conectados a la misma red) 
+8. Coloca el cubo en la posición de inicio.
+9. Presiona **Empezar** en la interfaz. 
 
-<img src="https://github.com/brian-latorre/Brazo_robot/blob/main/Multimedia/Servomotores.jpeg" width="500">
+<img src="https://github.com/brian-latorre/Brazo_robot/blob/main/Multimedia/Servomotores.jpeg" width="400">
 
