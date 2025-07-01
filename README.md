@@ -18,4 +18,4 @@ También puedes usarlo como guía para desarrollar tu propio proyecto, especialm
 
 ![Servomotores|width=100](https://github.com/user-attachments/assets/f7714145-2ae7-4db5-bfc1-36c338258912)
 
-![Brazo_Robot/Multimedia/Servomotores.jpeg]
+![Servomotores](https://github.com/brian-latorre/Brazo_robot/blob/main/Multimedia/Servomotores.jpg?raw=true)
