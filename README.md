@@ -17,11 +17,17 @@ Este repositorio contiene todo lo que necesitas para replicar nuestro proyecto c
 
 También puedes usarlo como guía para desarrollar tu propio proyecto, especialmente si estás comenzando desde cero, tal como hicimos nosotros.
 
+## Objetivo del proyecto
+
+- Automatizar la detección y lectura de códigos QR presentes en un cubo.
+- Usar un brazo robótico para girar el cubo hasta encontrar la cara adecuada.
+- Facilitar la reutilización del sistema por parte de estudiantes o desarrolladores nuevos.
+
 ## Software
 
 - [Arduino IDE](https://www.arduino.cc/en/software/)
 - Visual Studio Code
-- IP Webcam
+- [IP Webcam](https://play.google.com/store/apps/details?id=com.pas.webcam&hl=en&pli=1)
 
 ## Hardware
 
@@ -44,6 +50,16 @@ Recomendamos seguir la [documentación] que creamos para poder usar el brazo rob
 7. Reemplaza la IP que está en el programa Detectar_QR.py por la IP que muestra la aplicación. (el programa y la aplicación deben estar conectados a la misma red) 
 8. Coloca el cubo en la posición de inicio.
 9. Presiona **Empezar** en la interfaz. 
+
+## Resultado Final
+
+![Video]()
+
+### Limitaciones
+
+- Dependencia de buena iluminación para la cámara.
+- Revisar que el brazo no esté torcido entre los servos _Codo-Muñeca-IN_.
+- Necesidad de bases para hacer los giros del cubo y poder agarrar los cubos de manera correcta. 
 
 <img src="https://github.com/brian-latorre/Brazo_robot/blob/main/Multimedia/Servomotores.jpeg" width="400">
 
