@@ -1,6 +1,6 @@
 # Escaneo QR automatizado por brazo robot
 
->Este proyecto fue iniciado en el curso de Arquitectura de Computadoras gracias al aporte del brazo robot brindado por el profezor Cesar Martín Cruz Salazar. 
+>Este proyecto fue iniciado en el curso de Arquitectura de Computadoras de la Universidad Nacional de Ingeniería gracias al aporte del profezor Cesar Martín Cruz Salazar con un brazo robot. 
 
 ## Descripción 
 
