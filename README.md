@@ -45,12 +45,11 @@ Recomendamos seguir la [documentación] que creamos para poder usar el brazo rob
 2. Abre el archivo [Arduino_Movimientos.ino](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas/ArduinoIDE/Arduino_Movimientos/Arduino_Movimientos.ino) con la aplicación Arduino IDE.
 3. Presiona los botones _Verify_ y _Upload_ en Arduino IDE. (recomendamos que el brazo esté apagado para evitar movimientos bruscos)
 4. Cierra el programa de Arduino IDE. (recomendamos revisar [documentación] para evitar errores)
-5. Corre el archivo Detectar_QR.py. (puede usar VSC)
-6. Abre la aplicación IP Webcam en tu celular y posicionala para obtener una vista isométrica del cubo.
-7. Reemplaza la IP que está en el programa [Detectar_QR.py](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas/Python/Detectar_QR.py) por la IP que muestra la aplicación. (el programa y la aplicación deben estar conectados a la misma red)
-9. Coloca el cubo en la posición de inicio.
+5. Abre la aplicación IP Webcam en tu celular y posicionala para obtener una vista isométrica del cubo.
+6. Abre el programa [Detectar_QR.py](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas/Python/Detectar_QR.py) y reemplaza la IP del programa por la IP que muestra la aplicación. (el programa y la aplicación deben estar conectados a la misma red)
+7. Coloca el cubo en la posición de inicio.
 8. Corre el programa [Detectar_QR.py](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas/Python/Detectar_QR.py).
-10. Presiona **Empezar** en la interfaz. 
+9. Presiona **Empezar** en la interfaz. 
 
 ## Resultado Final
 
