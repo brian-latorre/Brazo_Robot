@@ -1,6 +1,6 @@
-# Escaneo QR automatizado por brazo robot
+# Escaneo de código QR automatizado por brazo robot
 
->Este proyecto fue iniciado en el curso de Arquitectura de Computadoras de la Universidad Nacional de Ingeniería gracias al aporte del profezor Cesar Martín Cruz Salazar con un brazo robot. 
+>Este proyecto fue iniciado en el curso de Arquitectura de Computadoras de la Universidad Nacional de Ingeniería gracias al aporte del profezor César Martín Cruz Salazar con un brazo robot. 
 
 ## Descripción 
 
@@ -42,7 +42,7 @@ Recomendamos seguir la [documentación] que creamos para poder usar el brazo rob
 ## Descargas
 
 1. Descarga la carpeta [Programas](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas).
-2. Abre el archivo [Arduino_Movimientos.ino](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas/ArduinoIDE/Arduino_Movimientos/Arduino_Movimientos.ino) con la aplicación Arduino IDE.
+2. Abre el archivo [Arduino_Movimientos.ino](https://github.com/brian-latorre/Brazo_Robot/blob/main/Programas/ArduinoIDE/Arduino_Movimientos/Arduino_Movimientos.ino) con la aplicación Arduino IDE.
 3. Presiona los botones _Verify_ y _Upload_ en Arduino IDE. (recomendamos que el brazo esté apagado para evitar movimientos bruscos)
 4. Cierra el programa de Arduino IDE. (recomendamos revisar [documentación] para evitar errores)
 5. Abre la aplicación IP Webcam en tu celular y posicionala para obtener una vista isométrica del cubo.
