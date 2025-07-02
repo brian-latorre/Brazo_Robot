@@ -16,7 +16,7 @@ Este repositorio contiene todo lo que necesitas para replicar nuestro proyecto c
 - Documentación
 
 También puedes usarlo como guía para desarrollar tu propio proyecto, especialmente si estás comenzando desde cero, tal como hicimos nosotros.
-Recomendamos seguir la [documentación]() que creamos para poder usar el brazo robótico. 
+Recomendamos seguir la [documentación](https://github.com/brian-latorre/Brazo_Robot/blob/main/Documentos/Documentaci%C3%B3n_Brazo_Robot.pdf) que creamos para poder usar el brazo robótico. 
 
 ## Objetivo del proyecto
 
@@ -41,7 +41,7 @@ Recomendamos seguir la [documentación]() que creamos para poder usar el brazo r
 1. Descarga la carpeta [Programas](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas).
 2. Abre el archivo [Arduino_Movimientos.ino](https://github.com/brian-latorre/Brazo_Robot/blob/main/Programas/ArduinoIDE/Arduino_Movimientos/Arduino_Movimientos.ino) con la aplicación Arduino IDE.
 3. Presiona los botones _Verify_ y _Upload_ en Arduino IDE. (recomendamos que el brazo esté apagado para evitar movimientos bruscos)
-4. Cierra el programa de Arduino IDE. (recomendamos revisar [documentación]() para evitar errores)
+4. Cierra el programa de Arduino IDE. (recomendamos revisar [documentación](https://github.com/brian-latorre/Brazo_Robot/blob/main/Documentos/Documentaci%C3%B3n_Brazo_Robot.pdf) para evitar errores)
 5. Abre la aplicación IP Webcam en tu celular y posicionala para obtener una vista isométrica del cubo.
 6. Abre el programa [Detectar_QR.py](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas/Python/Detectar_QR.py) y reemplaza la IP del programa por la IP que muestra la aplicación. (el programa y la aplicación deben estar conectados a la misma red)
 7. Coloca el cubo en la posición de inicio.
