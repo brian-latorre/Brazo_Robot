@@ -16,6 +16,7 @@ Este repositorio contiene todo lo que necesitas para replicar nuestro proyecto c
 - Documentación
 
 También puedes usarlo como guía para desarrollar tu propio proyecto, especialmente si estás comenzando desde cero, tal como hicimos nosotros.
+Recomendamos seguir la [documentación]() que creamos para poder usar el brazo robótico. 
 
 ## Objetivo del proyecto
 
@@ -37,14 +38,10 @@ También puedes usarlo como guía para desarrollar tu propio proyecto, especialm
 
 ## ¿Cómo empezar?
 
-Recomendamos seguir la [documentación] que creamos para poder usar el brazo robótico. 
-
-## Descargas
-
 1. Descarga la carpeta [Programas](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas).
 2. Abre el archivo [Arduino_Movimientos.ino](https://github.com/brian-latorre/Brazo_Robot/blob/main/Programas/ArduinoIDE/Arduino_Movimientos/Arduino_Movimientos.ino) con la aplicación Arduino IDE.
 3. Presiona los botones _Verify_ y _Upload_ en Arduino IDE. (recomendamos que el brazo esté apagado para evitar movimientos bruscos)
-4. Cierra el programa de Arduino IDE. (recomendamos revisar [documentación] para evitar errores)
+4. Cierra el programa de Arduino IDE. (recomendamos revisar [documentación]() para evitar errores)
 5. Abre la aplicación IP Webcam en tu celular y posicionala para obtener una vista isométrica del cubo.
 6. Abre el programa [Detectar_QR.py](https://github.com/brian-latorre/Brazo_Robot/tree/main/Programas/Python/Detectar_QR.py) y reemplaza la IP del programa por la IP que muestra la aplicación. (el programa y la aplicación deben estar conectados a la misma red)
 7. Coloca el cubo en la posición de inicio.
@@ -55,11 +52,12 @@ Recomendamos seguir la [documentación] que creamos para poder usar el brazo rob
 
 ![Video]()
 
-### Limitaciones
+## Limitaciones
 
-- Dependencia de buena iluminación para la cámara.
-- Revisar que el brazo no esté torcido entre los servos _Codo-Muñeca-In_.
-- Necesidad de bases para hacer los giros del cubo y poder agarrar los cubos de manera correcta. 
+- Dependencia de buena iluminación para que la cámara lea correctamente los QR.
+- Requiere ajustar bien la orientación de los servos, especialmente entre **Codo** y **Muñeca-In**.
+- Necesita una base física para sujetar y girar correctamente el cubo.
+
 
 <img src="https://github.com/brian-latorre/Brazo_robot/blob/main/Multimedia/Servomotores.jpeg" width="400">
 
