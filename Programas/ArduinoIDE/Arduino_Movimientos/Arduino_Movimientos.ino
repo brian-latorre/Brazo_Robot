@@ -105,10 +105,11 @@ void loop() {
 
 void HOME(){
   mover(BASE, 105);
-  mover(PINZA, 70);
+  mover(HOMBRO, 35);
   mover(CODO, 5);
-  mover(MUNHECA_ROT, 80);
   mover(MUNHECA_IN, 160);
+  mover(MUNHECA_ROT, 80);
+  mover(PINZA, 70);
 }
 
 void suave(Articulacion articulacion, int inicio, int final){
