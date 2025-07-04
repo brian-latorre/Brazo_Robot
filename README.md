@@ -45,7 +45,7 @@ https://github.com/user-attachments/assets/c4cf7143-7717-4c40-a67a-482367c9a5b3
 - Arduino UNO Mini
 
 ## Requerimientos Físicos
-Debido a las limitaciones del brazo, requerimos una nueva base para realizar las rotaciones y ayudar al brazo a que agarre el cubo en todo momento. La base del brazo necesitó aproximadamente 1.5cm de altura extra, las bases extras fueron hechas con corte láser mientras que sus patas fueron impresas en 3D. 
+Debido a las limitaciones del brazo, requerimos una nueva base para realizar las rotaciones y ayudar al brazo a que agarre el cubo correctamente durante las rotaciones y traslaciones. La base de madera del brazo necesitó aproximadamente 1.5cm de altura adicional, las bases extras fueron hechas con corte láser mientras que sus patas fueron impresas en 3D. 
 
 ## ¿Cómo empezar?
 
