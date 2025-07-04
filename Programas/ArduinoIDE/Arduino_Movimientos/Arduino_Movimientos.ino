@@ -12,8 +12,8 @@ enum Articulacion {
 };
 
 // String para mandar un mensaje al arduino mediante el Serial Monitor. Permite hacer movimientos del brazo sin escribir una función
-// completa. Sirve para pruebas. Comando no necesariamente tiene el mismo nombre que la función a la que llama
-String comando;
+// completa. Sirve para pruebas. Mensaje no necesariamente tiene el mismo nombre que la función a la que llama
+String mensaje;
 
 // Arreglo de 6 servos, uno para cada articulación
 Servo servos[6];    // servos[BASE], servos[HOMBRO] , servos[CODO] , servos[MUNHECA_ROT], servos[MUNHECA_IN], servos[PINZA]
@@ -29,7 +29,7 @@ const int home[6] = {
 };
 
 // Posiciones alternativas
-const int posicion_1[6] = {80, 70, 7, 80, 160, 0};     // Posición 1: Posición para iniciar el movimiento
+const int posicion_1[6] = {80, 70, 7, 80, 160, 0};
 
 void mover_servos_posicion(const int destino[6]);
 void mover(Articulacion articulacion, int destino);
@@ -64,13 +64,13 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
-    comando = Serial.readStringUntil('\n');
-    comando.trim(); 
+    mensaje = Serial.readStringUntil('\n');
+    mensaje.trim(); 
 
     String nombre;
     int angulo;
 
-    if (parsear_comando(comando, nombre, angulo)) {
+    if (parsear_comando(mensaje, nombre, angulo)) {
       Articulacion articulacion;
       if (nombre_a_articulacion(nombre, articulacion)) {
         mover(articulacion, angulo);
@@ -81,18 +81,18 @@ void loop() {
       return;
     }
 
-    // --- Comandos de posición predeterminada ---
+    // --- Mensajes de posición predeterminada ---
     // Si deseas agregar un mensaje para que haga un movimiento el brazo, agregalo aqui
-    if (comando == "POS1") mover_servos_posicion(posicion_1);
-    else if (comando == "CAJA") agarrar_caja();
-    else if (comando == "VENCIDO") zona_vencido();
-    else if (comando == "NO_VENCIDO") zona_no_vencido();
-    else if(comando == "SUBIR") subir();
-    else if(comando == "CIRCUITO1") circuito1();
-    else if(comando == "CIRCUITO2") circuito2();
-    else if(comando=="HOME") HOME();
+    if (mensaje == "POS1") mover_servos_posicion(posicion_1);
+    else if (mensaje == "CAJA") agarrar_caja();
+    else if (mensaje == "VENCIDO") zona_vencido();
+    else if (mensaje == "NO_VENCIDO") zona_no_vencido();
+    else if(mensaje == "SUBIR") subir();
+    else if(mensaje == "CIRCUITO1") circuito1();
+    else if(mensaje == "CIRCUITO2") circuito2();
+    else if(mensaje=="HOME") HOME();
     else {
-      Serial.println("ERROR: Comando no reconocido");
+      Serial.println("ERROR: Mensaje no reconocido");
       return;
     }
 
@@ -251,7 +251,6 @@ void circuito2(){
 //==========================================================
 //==========================================================
 
-
 void mover_servos_posicion(const int destino[6]) {
   for (int i = 0; i < 6; i++) {
     int actual = servos[i].read();
@@ -280,17 +279,16 @@ void mover(Articulacion articulacion, int destino) {
 
 bool parsear_comando(const String& mensaje, String &nombre, int &angulo) {
   int espacio = mensaje.indexOf(' ');
-  if (espacio == -1) return false;
+  if(espacio == -1) return false;
 
-  nombre = mensaje.substring(0, espacio);
+  nombre= mensaje.substring(0, espacio);
   nombre.trim();
   nombre.toUpperCase();
 
-  String angulo_str = mensaje.substring(espacio + 1);
+  String angulo_str=mensaje.substring(espacio + 1);
   angulo_str.trim();
-  angulo = angulo_str.toInt();
-  angulo = constrain(angulo, 0, 180);
-
+  angulo= angulo_str.toInt();
+  angulo= constrain(angulo, 0, 180);
   return true;
 }
 
