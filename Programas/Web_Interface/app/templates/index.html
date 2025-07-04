@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Robotic Arm</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+    <main class="container">
+        <h1>Brazo Robótico</h1>
+        <form action="/send" method="post" class="command-form">
+            <input type="text" name="command" required />
+            <button type="submit">Enviar</button>
+        </form>
+
+        {% if ack %}
+            <p style="color: {{ color }};">{{ ack }}</p>
+        {% endif %}
+    </main>
+</body>
+</html>
