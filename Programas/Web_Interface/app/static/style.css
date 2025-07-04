@@ -1,0 +1,95 @@
+/* Fondo general con degradado vertical */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #111, #444);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Caja de la interfaz */
+.container {
+  background: rgba(255, 255, 255, 0.08); /* fondo semi-transparente */
+  padding: 2rem 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  backdrop-filter: blur(12px); /* para efecto de "vidrio" */
+  -webkit-backdrop-filter: blur(12px);
+  max-width: 90vw;
+  width: 100%;
+  max-width: 400px;
+  color: #f0f0f0;
+}
+
+/* Título principal */
+h1 {
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: #ffffff;
+}
+
+/* Formulario de comandos */
+.command-form {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.command-form input {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: rgba(255,255,255,0.2);
+  color: #fff;
+  outline: none;
+}
+
+.command-form input::placeholder {
+  color: #ccc;
+}
+
+.command-form button {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #007bff;
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.command-form button:hover {
+  background: #0056b3;
+}
+
+/* Mensaje de respuesta */
+#ack {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #0f0;
+} 
+
+/* Responsive */
+@media (max-width: 480px) {
+  .container {
+    margin: 0 1rem; /* agrega margen lateral en móviles */
+  }
+
+  .command-form input,
+  .command-form button {
+    width: auto;       /* deja que el tamaño se ajuste automáticamente */
+    min-width: 0;       /* previene que crezca demasiado */
+  }
+}
