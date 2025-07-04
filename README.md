@@ -1,6 +1,6 @@
 # Escaneo de código QR automatizado por brazo robot
 
->Este proyecto fue iniciado en el curso de Arquitectura de Computadoras de la Universidad Nacional de Ingeniería gracias al aporte del profezor César Martín Cruz Salazar con un brazo robot. 
+>Este proyecto fue iniciado en el curso de Arquitectura de Computadoras de la Universidad Nacional de Ingeniería gracias al aporte del profesor César Martín Cruz Salazar con un brazo robot. 
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/brian-latorre/Brazo_robot/main/Multimedia/Servomotores_Readme.png" width="350">
