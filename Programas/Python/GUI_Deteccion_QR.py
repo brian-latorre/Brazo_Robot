@@ -1,245 +1,265 @@
-# control_brazo_qr_gui.py
-# ─────────────────────────────────────────────────────────────────────────────
-# Versión depuración — Julio 2025
-#
-# Flujo resumido
-# ──────────────
-# 1. INICIAR  →  "CAJA"            (⏱ 30 s)
-# 2. Busca QR
-#    ├─ ✓ Encontrado → lee fecha
-#    │                • fecha > hoy   → "NO_VENCIDO", "HOME"
-#    │                • fecha ≤ hoy   → "VENCIDO",     "HOME"
-#    └─ ✗ No QR  (2 intentos) → "SUBIR"  (⏱ 45 s) … repite búsqueda
-#          ├─ ✓ Encontrado → (mismo test de fecha) + "HOME"
-#          └─ ✗ No QR  (2 intentos) → "HOME" y termina
-#
-# 3. STOP → corta todo y envía "HOME".
-#
-# Todos los prints de depuración empiezan con >>>.
-
-import serial, time, json, datetime as dt
-import serial.tools.list_ports as list_ports
-import threading
+import time, json, datetime as dt, threading, queue, sys, csv
+from pathlib import Path
 import cv2
 from PIL import Image, ImageTk
 import tkinter as tk
 import tkinter.font as tkFont
+import serial
+import numpy as np
 
-# ────── SERIAL ───────────────────────────────────────────────────────────────
-def connect_arduino(baud=9600, handshake=b"READY", timeout=2):
-    for port in list_ports.comports():
-        try:
-            ser = serial.Serial(port.device, baudrate=baud, timeout=timeout)
-            time.sleep(2)
-            line = ser.readline().strip()
-            print(f">>> Escuchando {port.device} → {line}")
-            if line == handshake:
-                print(f">>> Arduino OK  →  {port.device}")
-                return ser
-            ser.close()
-        except (OSError, serial.SerialException):
-            pass
-    print(">>> Arduino NO encontrado")
-    return None
+# Constantes
+SERIAL_PORT = "COM3"
+BAUDRATE    = 9600
+CAM_URL     = "http://192.168.0.128:8080/video"  # IP Webcam
 
-arduino = connect_arduino()
+DISPLAY_W, DISPLAY_H = 400, 300
+INFO_W               = 320
 
-def send_cmd(cmd: str):
-    """Envía un comando al Arduino y lo muestra por consola."""
-    if not arduino:
-        print(f">>> Arduino no conectado (no se envió {cmd})")
-        return
-    arduino.write(cmd.encode() + b'\n')
-    arduino.flush()
-    print(f">>> {cmd} enviado al Arduino")
-
-# ───── OPEN-CV QR DETECTOR ───────────────────────────────────────────────────
-qr_detector = cv2.QRCodeDetector()
-def decode_qr(frame):
-    data, pts, _ = qr_detector.detectAndDecode(frame)
-    if not data:
-        return None, None
-    try:
-        return json.loads(data), pts
-    except json.JSONDecodeError:
-        return None, None
-
-# ───── CONFIG VISUAL ─────
 BG_MAIN, BG_PANEL = "#181818", "#181818"
 ACCENT, COLOR_TXT = "#3dbc95", "#ffffff"
-DISPLAY_W, DISPLAY_H = 400, 300
-INFO_W             = 320
-CAM_URL = "http://10.1.19.196:8080/video"
+
+FRAME_QUEUE_MAX = 5
+VISION_FPS      = 0.07          # ~14 fps
+
+# Párametros de tiempo
+WAIT_CAJA   = 12 
+WAIT_ROT    =  8   
+WAIT_ROT4   = 20   
+SEARCH_WINDOW = 3               # segundos de búsqueda del QR
+
+# Comandos de rotación
+ROTACIONES = ["ROTACION_1", "ROTACION_2", "ROTACION_3", "ROTACION_4"]
+
+# ─── Evento que enciende/apaga la decodificación ────────────────────────────
+vision_active = threading.Event()
+
+# ──────── SERIAL ─────────────────────────────────────────────────────────────
+try:
+    arduino = serial.Serial(SERIAL_PORT, BAUDRATE, timeout=2)
+    time.sleep(2)
+    print(f">>> Conectado a Arduino en {SERIAL_PORT}")
+except serial.SerialException as e:
+    print(">>> ERROR: no se abrió", SERIAL_PORT, e)
+    arduino = None
+
+def send_cmd(cmd: str):
+    if not arduino:
+        print(f">>> Arduino no conectado (ignorado {cmd})"); return
+    arduino.write(cmd.encode() + b"\n")
+    arduino.flush()
+    print(">>> →", cmd)
+
+# Inventario CSV
+
+INV_PATH = Path(__file__).parent.parent / "Data" / "inventario.csv"
+inventario = {}
+with open(INV_PATH, newline='', encoding='utf-8') as f:
+    for row in csv.DictReader(f):
+        inventario[str(row["ID"])] = row
+print(f">>> Inventario cargado ({len(inventario)} ítems)")
+
+# Detectar el QR
+qr_det = cv2.QRCodeDetector().setEpsX(0.4).setEpsY(0.4)
+
+def try_decode_qr(frame):
+    """Devuelve (info_dict, bbox) o (None, None)."""
+    try:
+        data, pts, _ = qr_det.detectAndDecode(frame)
+        if not data and hasattr(qr_det, "detectAndDecodeCurved"):
+            try:
+                data, pts, _ = qr_det.detectAndDecodeCurved(frame)
+            except cv2.error:
+                return None, None
+        if not data:
+            return None, None
+
+        # Interpretar payload
+        try:
+            parsed = json.loads(data)
+            if isinstance(parsed, dict):
+                if "ID" in parsed:
+                    id_val = str(parsed["ID"])
+                else:
+                    return parsed, pts         # venían 5 campos completos
+            else:
+                id_val = str(parsed)           # JSON numérico
+        except json.JSONDecodeError:
+            id_val = data.strip()              # solo ID como texto
+
+        info = inventario.get(id_val)
+        return (info, pts) if info else (None, None)
+    except Exception as e:
+        print(">>> Error en try_decode_qr:", e)
+        return None, None
+
+# Colas
+frames_q  = queue.Queue(maxsize=FRAME_QUEUE_MAX)
+results_q = queue.Queue()
+stop_all  = threading.Event()
+fsm_idle  = threading.Event(); fsm_idle.set()
+
+
+# 1. HILO VISIÓN
+
+def vision_worker():
+    while not stop_all.is_set():
+        try:
+            frame = frames_q.get(timeout=0.1)
+        except queue.Empty:
+            continue
+
+        if vision_active.is_set():
+            info, pts = try_decode_qr(frame)
+            if info:
+                results_q.put((info, pts))
+
+        time.sleep(VISION_FPS if vision_active.is_set() else 0.02)
+threading.Thread(target=vision_worker, daemon=True).start()
+
+# 2. HILO FSM
+
+def fsm_worker():
+    fsm_worker.state, fsm_worker.deadline = "IDLE", 0
+    fsm_worker.search_dl, fsm_worker.rot_index = 0, 0  # rot_index 0‑4
+
+    while not stop_all.is_set():
+        now, st = time.monotonic(), fsm_worker.state
+
+        # Fin de espera mecánica (CAJA o ROTACIÓN_i)
+        if st in ("CAJA_WAIT", "ROT_WAIT") and now >= fsm_worker.deadline:
+            fsm_worker.state = "BUSCANDO"
+            vision_active.set()
+            fsm_worker.search_dl = now + SEARCH_WINDOW
+            print(f">>> {st} terminado → buscando QR durante {SEARCH_WINDOW}s")
+
+        # Resultado visión
+        try:
+            info, pts = results_q.get_nowait()
+        except queue.Empty:
+            info = None
+
+        if info:
+            vision_active.clear()
+            gui_set_labels(info)
+            global qr_bbox, qr_info
+            qr_bbox, qr_info = pts, info
+
+            fecha_txt = info.get("Fecha", "")
+            try:
+                fecha_qr = dt.datetime.strptime(fecha_txt, "%Y-%m-%d").date()
+            except ValueError:
+                print(">>> Fecha inválida → VENCIDO")
+                send_cmd("VENCIDO"); send_cmd("HOME")
+                fsm_worker.state = "IDLE"; fsm_idle.set(); continue
+
+            send_cmd("NO_VENCIDO" if fecha_qr > dt.date.today() else "VENCIDO")
+            send_cmd("HOME"); fsm_worker.state = "IDLE"; fsm_idle.set(); continue
+
+        # Ventana de búsqueda agotada
+        if st == "BUSCANDO" and now >= fsm_worker.search_dl:
+            vision_active.clear()
+
+            if fsm_worker.rot_index < len(ROTACIONES):
+                cmd = ROTACIONES[fsm_worker.rot_index]
+                fsm_worker.rot_index += 1
+                print(f">>> No QR → {cmd}"); send_cmd(cmd)
+
+                wait = WAIT_ROT4 if cmd == "ROTACION_4" else WAIT_ROT
+                fsm_worker.state, fsm_worker.deadline = "ROT_WAIT", now + wait
+            else:
+                print(">>> No QR tras 4 rotaciones → HOME")
+                send_cmd("HOME"); fsm_worker.state = "IDLE"; fsm_idle.set()
+
+        time.sleep(0.05)
+threading.Thread(target=fsm_worker, daemon=True).start()
+
+# 3. GUI - Sistema Completo
 
 root = tk.Tk()
 root.title("Control Brazo QR (debug)")
 root.configure(bg=BG_MAIN)
-root.geometry("930x520")
-root.minsize(850, 480)
-root.columnconfigure(0, weight=1, minsize=INFO_W + 40)
-root.columnconfigure(1, weight=3)
-root.rowconfigure(0, weight=1)
+root.geometry("930x520"); root.minsize(850,480)
+root.columnconfigure(0, weight=1, minsize=INFO_W+40)
+root.columnconfigure(1, weight=3); root.rowconfigure(0, weight=1)
 
-# ───── PANEL IZQ ─────
 panel = tk.Frame(root, bg=BG_MAIN)
 panel.grid(row=0, column=0, sticky="nsew", padx=40, pady=40)
-panel.rowconfigure((0, 3), weight=1)
-panel.columnconfigure(0, weight=1)
+panel.rowconfigure((0,3), weight=1); panel.columnconfigure(0, weight=1)
 
 info_frame = tk.Frame(panel, width=INFO_W, bg=BG_PANEL,
-                      highlightbackground="#ffffff", highlightthickness=2)
+                      highlightbackground="#fff", highlightthickness=2)
 info_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=10)
 info_frame.columnconfigure(0, weight=1)
 
 tk.Label(info_frame, text="INFORMACIÓN OBTENIDA", bg=BG_PANEL, fg=ACCENT,
-         font=("Segoe UI", 12, "bold"), anchor="w").pack(padx=(10, 0), pady=(8, 10))
+         font=("Segoe UI",12,"bold"), anchor="w").pack(padx=(10,0), pady=(8,10))
 
-raw = {"ID":"ID:\t\t","Nombre":"Nombre:\t\t","Categoria":"Categoría:\t",
-       "Destino":"Destino:\t\t","Fecha":"Fecha:\t\t"}
-labels = {k: tk.Label(info_frame, text=v, font=("Roboto", 10),
+raw_lbl = {"ID":"ID:\t\t","Nombre":"Nombre:\t\t","Categoria":"Categoría:\t",
+           "Destino":"Destino:\t\t","Fecha":"Fecha:\t\t"}
+labels = {k: tk.Label(info_frame, text=v, font=("Roboto",10),
                       bg=BG_PANEL, fg=COLOR_TXT, anchor="w")
-          for k, v in raw.items()}
-for lbl in labels.values():
-    lbl.pack(fill="x", padx=10, pady=(2, 4))
+          for k,v in raw_lbl.items()}
+for lbl in labels.values(): lbl.pack(fill="x", padx=10, pady=(2,4))
 
-def set_labels(data):
+def gui_set_labels(data):
     for k,lbl in labels.items():
-        lbl.config(text=f"{raw[k]}{data.get(k,'')}")
+        lbl.config(text=f"{raw_lbl[k]}{data.get(k,'')}")
 
-# ───── BOTONES Y CÁMARA ─────
 frame_btns = tk.Frame(panel, bg=BG_MAIN)
-frame_btns.grid(row=2, column=0, pady=(30, 0))
+frame_btns.grid(row=2, column=0, pady=(30,0))
 frame_btns.columnconfigure((0,1), weight=1)
 btn_font = tkFont.Font(family="Segoe UI", size=11, weight="bold")
 
 frame_cam = tk.Frame(root, width=DISPLAY_W, height=DISPLAY_H,
-                     bg=BG_PANEL, highlightbackground="#ffffff",
-                     highlightthickness=2)
-frame_cam.grid(row=0, column=1, padx=40, pady=40)
-frame_cam.grid_propagate(False)
-lbl_cam = tk.Label(frame_cam, bg=BG_PANEL, bd=0)
-lbl_cam.pack(fill='both', expand=True)
+                     bg=BG_PANEL, highlightbackground="#fff", highlightthickness=2)
+frame_cam.grid(row=0, column=1, padx=40, pady=40); frame_cam.grid_propagate(False)
+lbl_cam = tk.Label(frame_cam, bg=BG_PANEL, bd=0); lbl_cam.pack(fill='both', expand=True)
 
-cap = cv2.VideoCapture(CAM_URL)
+cap = cv2.VideoCapture(1)
 if not cap.isOpened():
-    print(">>> ERROR: No se pudo abrir la cámara en", CAM_URL)
+    print(">>> ERROR: no se pudo abrir la cámara", CAM_URL); sys.exit(1)
 
-last_frame = None
-qr_bbox    = None
-scanning   = False
+qr_bbox, qr_info = None, None
 
-# ───── LOOP DE VÍDEO ─────
 def update_camera():
-    global last_frame
     ret, frame = cap.read()
     if ret:
-        frame_r = cv2.resize(frame, (DISPLAY_W, DISPLAY_H))
-        last_frame = frame_r.copy()
-        frame_rgb = cv2.cvtColor(frame_r, cv2.COLOR_BGR2RGB)
-        if qr_bbox is not None:
-            import numpy as np
-            pts = qr_bbox.astype(int).reshape(-1,1,2)
-            cv2.polylines(frame_rgb, [pts], True, (0,255,0), 2)
-        img = ImageTk.PhotoImage(Image.fromarray(frame_rgb))
-        lbl_cam.imgtk = img
-        lbl_cam.config(image=img)
-    lbl_cam.after(20, update_camera)
+        if not frames_q.full(): frames_q.put(frame.copy())
+        prev = cv2.resize(frame, (DISPLAY_W, DISPLAY_H))
+        prev_rgb = cv2.cvtColor(prev, cv2.COLOR_BGR2RGB)
 
-# ───── LÓGICA DE BÚSQUEDA DE QR ─────
-def evaluate_qr(info):
-    """Procesa la fecha y envía el comando apropiado."""
-    fecha_txt = info.get("Fecha","")
-    try:
-        fecha_qr = dt.datetime.strptime(fecha_txt, "%Y-%m-%d").date()
-    except ValueError:
-        print(">>> Formato de fecha inválido:", fecha_txt)
-        send_cmd("VENCIDO")          # cuidador: tratar como vencido
-        send_cmd("HOME")
-        return
-    hoy = dt.date.today()
-    if fecha_qr > hoy:
-        print(">>> Producto NO vencido (", fecha_txt, ")")
-        send_cmd("NO_VENCIDO")
-    else:
-        print(">>> Producto VENCIDO (", fecha_txt, ")")
-        send_cmd("VENCIDO")
-    send_cmd("HOME")
+        if qr_bbox is not None and isinstance(qr_bbox, np.ndarray) and qr_bbox.shape[0]>=4:
+            sx, sy = DISPLAY_W/frame.shape[1], DISPLAY_H/frame.shape[0]
+            pts = qr_bbox.copy(); pts[:,0]*=sx; pts[:,1]*=sy; pts=pts.astype(int)
+            cv2.polylines(prev_rgb, [pts.reshape(-1,1,2)], True, (0,255,0), 2)
 
-def search_qr_loop(stage=0, attempt=0):
-    """
-    stage 0 → después de CAJA
-    stage 1 → después de SUBIR
-    attempt 0/1 → primer intento / reintento tras 4 s
-    """
-    global scanning, qr_bbox, last_frame
-    if not scanning:
-        return
-    if last_frame is None:
-        root.after(100, lambda: search_qr_loop(stage, attempt))
-        return
+        img = ImageTk.PhotoImage(Image.fromarray(prev_rgb))
+        lbl_cam.imgtk = img; lbl_cam.config(image=img)
+        if qr_info: gui_set_labels(qr_info)
 
-    info, pts = decode_qr(last_frame)
-    if info:
-        qr_bbox = pts
-        set_labels(info)
-        scanning = False
-        print(">>> QR ENCONTRADO ✅  Información:", info)
-        evaluate_qr(info)
-        return
+    if not stop_all.is_set(): lbl_cam.after(20, update_camera)
 
-    print(">>> QR no encontrado (stage", stage, "attempt", attempt, ")")
-    if attempt == 0:
-        root.after(4000, lambda: search_qr_loop(stage, 1))
-        return
-
-    # falló el segundo intento
-    if stage == 0:
-        # --- pasar a SUBIR ---
-        print(">>> Dos intentos fallidos → ejecutando SUBIR")
-        def subir_worker():
-            send_cmd("SUBIR")
-            print(">>> Esperando 45 s tras SUBIR …")
-            time.sleep(45)
-            root.after(0, lambda: search_qr_loop(1, 0))
-        threading.Thread(target=subir_worker, daemon=True).start()
-    else:
-        # stage 1 y también falló → HOME y terminar
-        print(">>> No se detectó QR tras SUBIR → HOME y fin")
-        send_cmd("HOME")
-        scanning = False
-
-# ───── ACCIONES BOTONES ─────
 def task_iniciar():
-    """Envía CAJA, espera 30 s y lanza la búsqueda de QR (stage 0)."""
-    global scanning, qr_bbox
-    scanning = True
-    qr_bbox  = None
-    set_labels({k:"" for k in labels})
+    if not fsm_idle.is_set():
+        print(">>> Ya hay una operación en curso"); return
+    global qr_bbox, qr_info
+    qr_bbox = qr_info = None; gui_set_labels({k:"" for k in raw_lbl})
 
-    def worker():
-        send_cmd("CAJA")
-        print(">>> Esperando 30 s tras CAJA …")
-        time.sleep(30)
-        print(">>> Iniciando búsqueda de QR (stage 0)")
-        root.after(0, lambda: search_qr_loop(0, 0))
-    threading.Thread(target=worker, daemon=True).start()
+    send_cmd("CAJA"); fsm_idle.clear()
+    now = time.monotonic()
+    fsm_worker.state, fsm_worker.deadline = "CAJA_WAIT", now + WAIT_CAJA
+    fsm_worker.rot_index = 0; vision_active.clear()
 
 def task_stop():
-    """Detiene todo y lleva el brazo a HOME."""
-    global scanning, qr_bbox
-    scanning = False
-    qr_bbox  = None
-    send_cmd("HOME")
-    set_labels({k:"" for k in labels})
+    stop_all.set(); send_cmd("HOME"); root.destroy()
 
-# ───── BOTONES ─────
 tk.Button(frame_btns, text="INICIAR", font=btn_font, bg=ACCENT, fg="white",
-          padx=20, pady=10, bd=0, activebackground="#246f58", cursor="hand2",
-          command=task_iniciar).grid(row=0, column=0, sticky="e", padx=(0,20))
+          padx=20, pady=10, bd=0, activebackground="#246f58",
+          command=task_iniciar).grid(row=0,column=0,sticky="e",padx=(0,20))
 tk.Button(frame_btns, text="STOP", font=btn_font, bg="#f53b4b", fg="white",
-          padx=20, pady=10, bd=0, activebackground="#a82833", cursor="hand2",
-          command=task_stop).grid(row=0, column=1, sticky="w", padx=(20,0))
+          padx=20, pady=10, bd=0, activebackground="#a82833",
+          command=task_stop).grid(row=0,column=1,sticky="w",padx=(20,0))
 
-# ───── MAINLOOP ─────
+# Ejecutar
 update_camera()
 root.mainloop()
