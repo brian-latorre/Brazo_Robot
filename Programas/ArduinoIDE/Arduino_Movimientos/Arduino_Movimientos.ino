@@ -21,10 +21,10 @@ Servo servos[6];    // servos[BASE], servos[HOMBRO] , servos[CODO] , servos[MUNH
 // Posición inicial donde el brazo está seguro sin golpear nada. 
 const int home[6] = {
   105,  // BASE
-   35,  // HOMBRO
+   20,  // HOMBRO
    5,  // CODO
    80,  // MUNHECA_ROT
-  160,  // MUNHECA_IN
+  170,  // MUNHECA_IN
    70   // PINZA
 };
 
@@ -39,9 +39,16 @@ void agarrar_caja();
 void zona_vencido();
 void zona_no_vencido();
 void suave(Articulacion articulacion, int inicio, int final);
+void suave_2(Articulacion articulacion, int inicio, int final);
 void circuito1();
 void circuito2();
 void HOME();
+void arriba_abajo();
+void rotar();
+void rotacion_1();
+void rotacion_2();
+void rotacion_3();
+void rotacion_4();
 
 void subir();
 
@@ -91,6 +98,10 @@ void loop() {
     else if(mensaje == "CIRCUITO1") circuito1();
     else if(mensaje == "CIRCUITO2") circuito2();
     else if(mensaje=="HOME") HOME();
+    else if(mensaje=="ROTACION_1") rotacion_1();
+    else if(mensaje=="ROTACION_2") rotacion_2();
+    else if(mensaje=="ROTACION_3") rotacion_3();
+    else if(mensaje=="ROTACION_4") rotacion_4();
     else {
       Serial.println("ERROR: Mensaje no reconocido");
       return;
@@ -105,9 +116,9 @@ void loop() {
 
 void HOME(){
   mover(BASE, 105);
-  mover(HOMBRO, 35);
+  mover(HOMBRO, 20);
   mover(CODO, 5);
-  mover(MUNHECA_IN, 160);
+  mover(MUNHECA_IN, 170);
   mover(MUNHECA_ROT, 80);
   mover(PINZA, 70);
 }
@@ -115,44 +126,183 @@ void HOME(){
 void suave(Articulacion articulacion, int inicio, int final){
   do{
     if(inicio<final){
+      inicio= inicio + 1;
+    }else{
+      inicio= inicio - 1;
+    }
+    mover(articulacion, inicio);
+    delay(40); 
+  }while(inicio!=final && inicio>0 && inicio<180 && final>0 && final<180);
+}
+
+void suave_2(Articulacion articulacion, int inicio, int final){
+  do{
+    if(inicio<final){
       inicio= inicio + 5;
     }else{
       inicio= inicio - 5;
     }
     mover(articulacion, inicio);
-    delay(500); 
+    delay(40); 
   }while(inicio!=final && inicio>0 && inicio<180 && final>0 && final<180);
 }
 
-void caida_munheca(){
-  mover(HOMBRO, 20);
-  delay(1000);
-  mover(MUNHECA_IN, 170);
-  delay(4000);
-  mover(HOMBRO,50);
-  delay(1000);
+void agarrar_caja() {
+  suave(HOMBRO, 20, 80);
+  suave(PINZA, 70, 130);
+  delay(750);
+  mover(HOMBRO, 75);
+  delay(750);
+  suave(BASE, 105, 80);
+  suave(HOMBRO, 75, 80);
+  suave(PINZA, 130, 70);
+  delay(750);
+  mover(HOMBRO, 60);
 }
 
-void agarrar_caja() {
-  mover(BASE, 105);
-  delay(1000);
-  mover(HOMBRO, 20);
-  delay(1000);
+void rotacion_1() {
+  mover(MUNHECA_ROT, 10);
+  mover(BASE, 81);
+  suave(HOMBRO, 60, 75);
+  delay(750);
+  suave(PINZA, 70, 130);
+  delay(750);
+  mover(HOMBRO, 73);
+  delay(750);
+  mover(MUNHECA_ROT, 80);
+  mover(BASE, 79);
+  suave(HOMBRO, 73, 75);
+  suave(PINZA, 130, 70);
+  delay(750);
+  mover(HOMBRO, 60);
+}
+
+void rotacion_2() {
+  mover(MUNHECA_ROT, 10);
+  mover(BASE, 81);
+  suave(HOMBRO, 60, 75);
+  delay(750);
+  suave(PINZA, 70, 130);
+  delay(750);
+  mover(HOMBRO, 73);
+  delay(750);
+  mover(MUNHECA_ROT, 80);
+  mover(BASE, 79);
+  suave(HOMBRO, 73, 75);
+  suave(PINZA, 130, 70);
+  delay(750);
+  mover(HOMBRO, 60);
+}
+
+void rotacion_3() {
+  mover(MUNHECA_ROT, 10);
+  mover(BASE, 81);
+  suave(HOMBRO, 60, 75);
+  delay(750);
+  suave(PINZA, 70, 130);
+  delay(750);
+  mover(HOMBRO, 73);
+  delay(750);
+  mover(MUNHECA_ROT, 80);
+  mover(BASE, 79);
+  suave(HOMBRO, 73, 75);
+  suave(PINZA, 130, 70);
+  delay(750);
+  mover(HOMBRO, 60);
+}
+
+void rotacion_4() {
+  mover(MUNHECA_ROT, 10);
+  mover(BASE, 80);
+  suave(HOMBRO, 60, 75);
+  delay(750);
+  suave(PINZA, 70, 130);
+  delay(750);
+  suave_2(HOMBRO, 75, 25);
+  delay(300);
+  mover(MUNHECA_ROT, 80);
+  mover(MUNHECA_IN, 160);
+  suave(BASE, 81, 28);
+  suave(HOMBRO, 25, 30);
+  delay(500);
+  suave(PINZA, 130, 90);
+  delay(300);
   mover(MUNHECA_IN, 170);
-  delay(4000);
-  suave(HOMBRO, 20, 80);
-  mover(PINZA,  130);
-  delay(1000);
-  mover(HOMBRO, 70);
-  delay(1000);
-  suave(BASE, 105, 80);
-  suave(HOMBRO, 70, 80);
-  mover(PINZA, 70); 
-  delay(1000);
-  suave(HOMBRO, 80, 30); 
+  suave(PINZA, 90, 70);
+  delay(500);
+  suave(PINZA, 70, 130);
+  delay(500);
+  mover(HOMBRO, 25);
+  delay(150);
+  suave(BASE, 28, 81);
+  suave(HOMBRO, 25, 75);
+  suave(PINZA, 130, 70);
+  delay(750);
+  mover(HOMBRO, 60);
 }
 
 void subir() {
+
+  //Agarrar Seccion Cámara
+  mover(BASE, 80);
+  suave(HOMBRO, 40, 80);
+  mover(PINZA, 130);      
+  delay(1000); 
+  suave(HOMBRO, 80, 35);    
+  suave(MUNHECA_IN, 170, 150);
+  suave(HOMBRO, 35, 40);
+
+  //Girar a la base superior
+  suave(BASE, 80, 30);
+  /////////////////////////
+
+  //Empieza rotación
+  mover(HOMBRO, 40);
+  delay(1000); 
+  mover(PINZA, 70);
+  delay(100);
+  mover(HOMBRO, 35);
+  delay(1000); 
+  mover(MUNHECA_IN, 165);
+  delay(1000);
+  mover(PINZA, 130);
+  delay(1000);
+  mover(HOMBRO, 30);
+  delay(1000); 
+  mover(MUNHECA_IN,150);
+  delay(1000); 
+  mover(HOMBRO, 40);
+  delay(1000);
+  mover(PINZA, 70);
+  delay(1000);
+  mover(HOMBRO, 35);
+  delay(1000); 
+  mover(MUNHECA_IN, 165);
+  delay(1000);
+  mover(PINZA, 130);
+  delay(1000);
+  mover(HOMBRO, 30);
+  delay(1000); 
+  mover(MUNHECA_IN,150);
+  delay(1000); 
+  suave(HOMBRO, 30, 20);
+  mover(MUNHECA_IN, 170);
+  delay(4000);
+  suave(BASE, 30, 80);
+  mover(MUNHECA_ROT, 150);
+  suave(HOMBRO, 20, 80);
+  mover(PINZA, 70);
+  delay(1000);
+  suave(HOMBRO, 80, 30);
+  mover(MUNHECA_ROT, 80);
+  delay(1000);
+}
+
+void rotar(){
+  mover(MUNHECA_ROT, 150);
+}
+
+void arriba_abajo() {
 
   //Agarrar Seccion Cámara
   mover(BASE, 80);
@@ -198,42 +348,42 @@ void subir() {
   mover(MUNHECA_IN, 170);
   delay(4000);
   suave(BASE, 30, 80);
-  mover(MUNHECA_ROT, 150);
   suave(HOMBRO, 20, 80);
   mover(PINZA, 70);
   delay(1000);
   suave(HOMBRO, 80, 30);
   mover(MUNHECA_ROT, 80);
   delay(1000);
-    
 }
 
 void zona_vencido() {
-  mover(BASE, 80);
-  suave(HOMBRO,30 ,80);
-  mover(PINZA, 130);
-  delay(1500);
-  suave(HOMBRO, 80, 30);
-  suave(BASE, 80, 140);
-  suave(HOMBRO, 30, 80);
+  suave(HOMBRO,60 ,75);
+  delay(750);
+  suave(PINZA, 70, 160);
+  delay(750);
+  mover(HOMBRO, 72);
+  delay(750);
+  mover(BASE, 86);
+  suave(BASE, 86, 140);
+  suave(HOMBRO, 73, 75);
   mover(PINZA, 70);
-  delay(1500);
+  delay(500);
   suave(HOMBRO, 80, 30);
-  delay(1500);
 }
 
 void zona_no_vencido() {
-  mover(BASE, 80);
-  suave(HOMBRO,30 ,80);
-  mover(PINZA, 130);
-  delay(1500);
-  suave(HOMBRO, 80, 30);
-  suave(BASE, 80, 125);
-  suave(HOMBRO, 30, 80);
+  suave(HOMBRO,60 ,75);
+  delay(750);
+  suave(PINZA, 70, 160);
+  delay(750);
+  mover(HOMBRO, 72);
+  delay(750);
+  mover(BASE, 86);
+  suave(BASE, 86, 125);
+  suave(HOMBRO, 73, 75);
   mover(PINZA, 70);
-  delay(1500);
+  delay(500);
   suave(HOMBRO, 80, 30);
-  delay(1500);
 }
 
 void circuito1(){
@@ -260,6 +410,7 @@ void mover_servos_posicion(const int destino[6]) {
     while (actual != destino[i]) {
       actual += paso;
       servos[i].write(actual);
+      delay(100);
     }
   }
 }
