@@ -61,7 +61,7 @@ Debido a las limitaciones del brazo, requerimos una nueva base para realizar las
 
 ## Resultado Final
 
-[video](https://github.com/brian-latorre/Brazo_robot/raw/main/Multimedia/video_final.mp4)
+https://github.com/user-attachments/assets/e2bb2827-fac2-4845-80a7-4f4397c9b698
 
 ## Limitaciones
 
